@@ -26,7 +26,7 @@ def generate_random_transactions(number_of_trans):
 
 def mine():
     block_counter = 1
-    difficulty = 5
+    difficulty = 4
     data = initial_transactions()
     while True:
         #data = list(input("Enter some data: "))
