@@ -1,4 +1,9 @@
 import socket
+import json
+
+
+
+
 
 
 #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,8 +17,6 @@ s.listen()
 c, addr = s.accept()
 
 print("Got connection from",addr)
-
-print (s.recv(1024).decode())
 
 c.send("what is up".encode())
 

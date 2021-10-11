@@ -1,3 +1,10 @@
+node first
+	- maintain json "blockchain"
+	- allow clients to connect and add pending transactions, but only accept if the transaction is signed correctly.
+	- communicate with other nodes, keep the "blockchain" in sync by comparing block levels
+	- allow miners to add blocks to the blockchain by verifying what they send
+
+
 "crypto" client - if config doesnt exist, make one and prompt user for remote node ip
 
 verify all hashes in blockchain are correct? or does consensus among a lot of nodes make this not necessary
