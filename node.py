@@ -1,4 +1,5 @@
 import socket
+import hashlib
 import json
 import Crypto
 from Crypto.PublicKey import RSA
@@ -10,7 +11,7 @@ import base64
 blockchain = [[0, 0, [], "0"*64, hashlib.sha256(("0" + "0" + "" + "0" * 64).encode("utf8")).hexdigest()]]
 
 pending_transactions = []
-#TRANSACTION FORMAT: [sender, reciever, amount]
+#TRANSACTION FORMAT: [sender address, reciever address, amount, signature]
 
 def rsakeys():  
     length=1024  
@@ -34,18 +35,25 @@ def sign(privatekey,data):
 def verify(publickey,data,sign):
      return publickey.verify(data,(int(base64.b64decode(sign)),))
 
+def verify_transaction(transaction):
+    return verify(transaction[0], transaction[3])
 
 
 def add_pending_transaction(transaction):
-    pending_transactions.append(transaction)
+    if verify_transaction(transaction):
+        pending_transactions.append(transaction)
+    else:
+        print("Tried to add transaction to pending transaction list, but signature was incorrect")
 
 def add_block_to_chain(block):
     if verify_block(block):
+        blockchain.append(block)
 
 def verify_block(block):
     for transaction in block[2]:
-        continue
-
+        if not verify_transaction(transaction):
+            return False
+    return True
 
 
 
@@ -62,7 +70,5 @@ def network():
     print("Got connection from",addr)
 
     c.send("what is up".encode())
-
-
 
     c.close()
