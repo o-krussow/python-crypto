@@ -1,6 +1,8 @@
 import socket
 import hashlib
+import time
 import json
+import threading
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
@@ -55,7 +57,29 @@ def verify_block(block):
             return False
     return True
 
+def commit_to_disk():
+    with open("currentblockchain.json", "w+") as f:
+        f.write(json.dumps(blockchain))
 
+def listen_for_transactions():
+    while True:
+        print("test")
+        time.sleep(1)
+
+
+def main():
+    transaction_listener = threading.Thread(target=listen_for_transactions, args=())
+    transaction_listener.start()
+    print("wassup")
+
+if __name__ == "__main__":
+    try:
+        with open("currentblockchain.json", "r") as f:
+            blockchain = json.load(f)
+    except FileNotFoundError:
+        print("Blockchain file not found, making a new one for now")
+        commit_to_disk()
+    main()
 
 def network():
     s = socket.socket()
