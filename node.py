@@ -15,6 +15,10 @@ blockchain = [[0, 0, [], "0"*64, hashlib.sha256(("0" + "0" + "" + "0" * 64).enco
 pending_transactions = []
 #TRANSACTION FORMAT: [sender address, reciever address, amount, signature]
 
+#====================================================================
+#   TODO This part needs to be figured out
+#        Keep in mind, the public crypto address is the computed public key, hashed
+
 def rsakeys():  
     length=1024  
     privatekey = RSA.generate(length, Random.new().read)  
@@ -37,13 +41,11 @@ def sign(privatekey,data):
 def verify(publickey,data,sign):
     return publickey.verify(data,(int(base64.b64decode(sign)),))
 
+#======================================================================
 
-
-def verify_transaction(transaction):
-    return verify(transaction[0], transaction[2], transaction[3])
 
 def add_pending_transaction(transaction):
-    if verify_transaction(transaction):
+    if verify(transaction[0], transaction[2], transaction[3]):
         pending_transactions.append(transaction)
     else:
         print("Tried to add transaction to pending transaction list, but signature was incorrect")
@@ -62,10 +64,13 @@ def commit_to_disk():
     with open("currentblockchain.json", "w+") as f:
         f.write(json.dumps(blockchain))
 
-def transaction_recieved(alleged_transaction):
-    transaction = alleged_transaction.split(',')            #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
-    print(alleged_transaction)
+def transaction_recieved(transaction):
+    print(transaction)              #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
     add_pending_transaction(transaction)
+
+def block_recieved(block):
+    print(block)
+    add_block_to_chain(block)
 
 def listen_for_transactions():
     s = socket.socket()
@@ -79,21 +84,53 @@ def listen_for_transactions():
         while True:
             c, addr = s.accept()
 
-            print("Got connection from",addr)
+            print("Got connection for new transaction from",addr)
             
             potential_transaction = c.recv(1024).decode("utf8")
-            
-            new_transaction_thread = threading.Thread(target=transaction_recieved, args=(potential_transaction,))
+            json_transaction = json.loads(potential_transaction)
+
+            new_transaction_thread = threading.Thread(target=transaction_recieved, args=(json_transaction,))
             new_transaction_thread.start()
 
     except KeyboardInterrupt:
         c.close()
 
 
+def listen_for_new_blocks():
+    s = socket.socket()
+    port = 42070
+
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    s.bind(('', port))
+    s.listen()
+    try:
+        while True:
+            c, addr = s.accept()
+
+            print("Got connection for new block from",addr)
+            
+            potential_block = c.recv(2048).decode("utf8")
+            json_block = json.loads(potential_block)
+            
+            new_block_thread = threading.Thread(target=block_recieved, args=(json_block,))
+            new_block_thread.start()
+
+    except KeyboardInterrupt:
+        c.close()
+
+def sync_with_newer_chain(newblockchain):
+    #Go through newblockchain and make sure all blocks are valid, then add new blocks to current blockchain
+    pass
+
 def main():
     transaction_listener = threading.Thread(target=listen_for_transactions, args=())
+    block_listener = threading.Thread(target=listen_for_new_blocks, args=())
+
     transaction_listener.start()
-    print("wassup")
+    block_listener.start()
+    
+    print("Listening for transactions and blocks")
 
 
 

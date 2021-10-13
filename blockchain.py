@@ -22,8 +22,6 @@ def generate_random_transactions(number_of_trans):
         return_list.append({random.choice(some_names): [random.choice(some_names), random.randint(0, 1000)]})
     return(return_list)
 
-
-
 def mine():
     block_counter = 1
     difficulty = 4
@@ -57,7 +55,6 @@ def mine():
 
         block_counter += 1
         data = generate_random_transactions(random.randint(1, 3))
-
 
 
 mine()
