@@ -66,11 +66,20 @@ def commit_to_disk():
 
 def transaction_recieved(transaction):
     print(transaction)              #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
-    add_pending_transaction(transaction)
+    try:
+        parsed_transaction = json.loads(transaction)
+        add_pending_transaction(parsed_transaction)
+    except json.decoder.JSONDecodeError as e:
+        print("Transaction sent in a format json loader could not parse")
+        print(e)
 
 def block_recieved(block):
     print(block)
-    add_block_to_chain(block)
+    try:
+        parsed_block = json.loads(block)
+        add_block_to_chain(parsed_block)
+    except json.decoder.JSONDecodeError:
+        print("Block sent in a format json loader could not parse")
 
 def listen_for_transactions():
     s = socket.socket()
@@ -87,9 +96,8 @@ def listen_for_transactions():
             print("Got connection for new transaction from",addr)
             
             potential_transaction = c.recv(1024).decode("utf8")
-            json_transaction = json.loads(potential_transaction)
 
-            new_transaction_thread = threading.Thread(target=transaction_recieved, args=(json_transaction,))
+            new_transaction_thread = threading.Thread(target=transaction_recieved, args=(potential_transaction,))
             new_transaction_thread.start()
 
     except KeyboardInterrupt:
@@ -111,9 +119,8 @@ def listen_for_new_blocks():
             print("Got connection for new block from",addr)
             
             potential_block = c.recv(2048).decode("utf8")
-            json_block = json.loads(potential_block)
             
-            new_block_thread = threading.Thread(target=block_recieved, args=(json_block,))
+            new_block_thread = threading.Thread(target=block_recieved, args=(potential_block,))
             new_block_thread.start()
 
     except KeyboardInterrupt:
