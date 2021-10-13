@@ -35,11 +35,12 @@ def sign(privatekey,data):
     return base64.b64encode(str((privatekey.sign(data,''))[0]).encode())
 
 def verify(publickey,data,sign):
-     return publickey.verify(data,(int(base64.b64decode(sign)),))
+    return publickey.verify(data,(int(base64.b64decode(sign)),))
+
+
 
 def verify_transaction(transaction):
-    return verify(transaction[0], transaction[3])
-
+    return verify(transaction[0], transaction[2], transaction[3])
 
 def add_pending_transaction(transaction):
     if verify_transaction(transaction):
@@ -61,16 +62,40 @@ def commit_to_disk():
     with open("currentblockchain.json", "w+") as f:
         f.write(json.dumps(blockchain))
 
+def transaction_recieved(alleged_transaction):
+    transaction = alleged_transaction.split(',')            #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
+    print(alleged_transaction)
+    add_pending_transaction(transaction)
+
 def listen_for_transactions():
-    while True:
-        print("test")
-        time.sleep(1)
+    s = socket.socket()
+    port = 42069
+
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    s.bind(('', port))
+    s.listen()
+    try:
+        while True:
+            c, addr = s.accept()
+
+            print("Got connection from",addr)
+            
+            potential_transaction = c.recv(1024).decode("utf8")
+            
+            new_transaction_thread = threading.Thread(target=transaction_recieved, args=(potential_transaction,))
+            new_transaction_thread.start()
+
+    except KeyboardInterrupt:
+        c.close()
 
 
 def main():
     transaction_listener = threading.Thread(target=listen_for_transactions, args=())
     transaction_listener.start()
     print("wassup")
+
+
 
 if __name__ == "__main__":
     try:
@@ -81,18 +106,3 @@ if __name__ == "__main__":
         commit_to_disk()
     main()
 
-def network():
-    s = socket.socket()
-    port = 12345
-
-    s.bind(('', port))
-
-    s.listen()
-
-    c, addr = s.accept()
-
-    print("Got connection from",addr)
-
-    c.send("what is up".encode())
-
-    c.close()
