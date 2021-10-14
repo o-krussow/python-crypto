@@ -2,6 +2,7 @@ import rsa
 import json
 import hashlib
 import socket
+from Crypto.PublicKey import RSA
 from base64 import b64encode, b64decode
 
 user_wallet = []
@@ -9,13 +10,13 @@ primary_remote_node = "127.0.0.1"
 
 # User wallet format: [privatekey, publickey, publicaddress, balance]
 
-
-def send(recipient, amount):
+def send(recipient, amount, private):
     s = socket.socket()
     port = 42069
     s.connect((primary_remote_node, port))
 
-    signature = "jeff" # TODO obviously make this a real cryptographic signature you dingo
+    #user_wallet[2] is this wallets public address
+    signature = b64encode(rsa.sign(( user_wallet[2] + recipient + str(amount) ).encode(), private, "SHA-512")).decode()
     transaction = json.dumps([user_wallet[2], recipient, amount, signature]).encode()
     
     s.send(transaction)
@@ -39,12 +40,13 @@ def main():
     try:
         with open("w.file", "r") as f:
             user_wallet = json.load(f)
+            private = RSA.importKey(user_wallet[0],passphrase=None)
     except FileNotFoundError:
         print("Wallet file not found, will create new one")
         
         public, private = rsa.newkeys(2048)
-        publickey = str(public.exportKey('PEM'))
-        privatekey = str(private.exportKey('PEM'))
+        publickey = public.exportKey('PEM').decode()
+        privatekey = private.exportKey('PEM').decode()
 
         user_wallet = [privatekey, publickey, hashlib.sha256(publickey.encode()).hexdigest(), 0.0]
 
@@ -56,7 +58,7 @@ def main():
         if user_choice == "S":
             recipient = input("Enter the recipient's address: ")
             amount = input("Enter the amount to send: ")
-            send(recipient, amount)
+            send(recipient, amount, private)
         elif user_choice == "R":
             recieve()
         elif user_choice == "H":
