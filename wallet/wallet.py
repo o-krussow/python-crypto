@@ -1,9 +1,11 @@
 import rsa
 import json
 import hashlib
+import socket
 from base64 import b64encode, b64decode
 
 user_wallet = []
+primary_remote_node = ""
 
 # User wallet format: [privatekey, publickey, publicaddress, balance]
 
@@ -25,6 +27,7 @@ def sync_wallet_file():
 
 def main():
     global user_wallet
+    global primary_remote_node
     try:
         with open("w.file", "r") as f:
             user_wallet = json.load(f)
@@ -41,7 +44,7 @@ def main():
             f.write(json.dumps(user_wallet))
 
     while True:
-        user_choice = input("(S)END, (R)ECIEVE, (H)ISTORY, (E)XIT: ").upper()
+        user_choice = input("SET REMOTE NODE (I)P, (S)END, (R)ECIEVE, (H)ISTORY, (E)XIT: ").upper()
         if user_choice == "S":
             recipient = input("Enter the recipient's address: ")
             amount = input("Enter the amount to send: ")
@@ -53,6 +56,8 @@ def main():
         elif user_choice == "E":
             sync_wallet_file()
             break
+        elif user_choice == "I":
+            primary_remote_node = input("Enter IP of node: ")
         else:
             print("Invalid option")
 
