@@ -4,24 +4,47 @@ from base64 import b64encode, b64decode
 
 user_wallet = []
 
+def send(recipient, amount):
+    pass
 
+def recieve():
+    #print address information
+    pass
 
+def history():
+    pass
+
+def sync_wallet_file():
+    with open("w.file", "w+") as f:
+        f.write(json.dumps(user_wallet))
 
 def main():
+    global user_wallet
     try:
-        with open("wallet.file", "r") as f:
+        with open("w.file", "r") as f:
             user_wallet = json.load(f)
     except FileNotFoundError:
         print("Wallet file not found, will create new one")
-        with open("wallet.file", "w+") as f:
+        with open("w.file", "w+") as f:
             f.write(json.dumps(user_wallet))
 
     while True:
-        user_choice = input("(S)END, (R)ECIEVED, (H)ISTORY: ").upper()
+        user_choice = input("(S)END, (R)ECIEVE, (H)ISTORY, (E)XIT: ").upper()
         if user_choice == "S":
-            continue
+            recipient = input("Enter the recipient's address: ")
+            amount = input("Enter the amount to send: ")
+            send(recipient, amount)
+        elif user_choice == "R":
+            recieve()
+        elif user_choice == "H":
+            history()
+        elif user_choice == "E":
+            sync_wallet_file()
+            break
+        else:
+            print("Invalid option")
 
-if "__name__" == __main__:
+if __name__ == "__main__":
     main()
 
 
