@@ -5,13 +5,21 @@ import socket
 from base64 import b64encode, b64decode
 
 user_wallet = []
-primary_remote_node = ""
+primary_remote_node = "127.0.0.1"
 
 # User wallet format: [privatekey, publickey, publicaddress, balance]
 
 
 def send(recipient, amount):
-    pass
+    s = socket.socket()
+    port = 42069
+    s.connect((primary_remote_node, port))
+
+    signature = "jeff" # TODO obviously make this a real cryptographic signature you dingo
+    transaction = json.dumps([user_wallet[2], recipient, amount, signature]).encode()
+    
+    s.send(transaction)
+    s.close()
 
 def recieve():
     print("Full public key",user_wallet[1])
