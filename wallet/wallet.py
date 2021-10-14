@@ -10,14 +10,14 @@ primary_remote_node = "127.0.0.1"
 
 # User wallet format: [privatekey, publickey, publicaddress, balance]
 
-def send(recipient, amount, private):
+def send(recipient, amount, private, publickey):
     s = socket.socket()
     port = 42069
     s.connect((primary_remote_node, port))
 
     #user_wallet[2] is this wallets public address
     signature = b64encode(rsa.sign(( user_wallet[2] + recipient + str(amount) ).encode(), private, "SHA-512")).decode()
-    transaction = json.dumps([user_wallet[2], recipient, amount, signature]).encode()
+    transaction = json.dumps([user_wallet[2], recipient, amount, publickey, signature]).encode()
     
     s.send(transaction)
     s.close()
@@ -41,6 +41,7 @@ def main():
         with open("w.file", "r") as f:
             user_wallet = json.load(f)
             private = RSA.importKey(user_wallet[0],passphrase=None)
+            publickey  = private.public_key().exportKey('PEM').decode()
     except FileNotFoundError:
         print("Wallet file not found, will create new one")
         
@@ -58,7 +59,7 @@ def main():
         if user_choice == "S":
             recipient = input("Enter the recipient's address: ")
             amount = input("Enter the amount to send: ")
-            send(recipient, amount, private)
+            send(recipient, amount, private, publickey)
         elif user_choice == "R":
             recieve()
         elif user_choice == "H":

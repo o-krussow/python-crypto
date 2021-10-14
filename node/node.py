@@ -6,25 +6,30 @@ import threading
 import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
-import base64
+from base64 import b64encode, b64decode
 import rsa
 
 #each "block" = block number, nonce, data, prevhash, hash
 blockchain = [[0, 0, [], "0"*64, hashlib.sha256(("0" + "0" + "" + "0" * 64).encode("utf8")).hexdigest()]]
 
 pending_transactions = []
-#TRANSACTION FORMAT: [sender address, reciever address, amount, signature]
+#TRANSACTION FORMAT: [sender address, reciever address, amount, (publickey bcuz workaround), signature]
 
 #====================================================================
 #   TODO This part needs to be figured out
 #        Keep in mind, the public crypto address is the computed public key, hashed
 #   This part has been replaced by rsa.py
 
+def verify(message, signature, publickey):
+    public = RSA.importKey(publickey)
+    return (rsa.verify(message.encode(), b64decode(signature), public))
+
+
 #======================================================================
 
 
 def add_pending_transaction(transaction):
-    if verify(transaction[0], transaction[2], transaction[3]):
+    if verify((transaction[0]+transaction[1]+transaction[2]), transaction[4], transaction[3]):
         pending_transactions.append(transaction)
     else:
         print("Tried to add transaction to pending transaction list, but signature was incorrect")
