@@ -1,14 +1,19 @@
 import rsa
 import json
+import hashlib
 from base64 import b64encode, b64decode
 
 user_wallet = []
+
+# User wallet format: [privatekey, publickey, publicaddress, balance]
+
 
 def send(recipient, amount):
     pass
 
 def recieve():
-    #print address information
+    print("Full public key",user_wallet[1])
+    print("Actual wallet address:",user_wallet[2])
     pass
 
 def history():
@@ -25,6 +30,13 @@ def main():
             user_wallet = json.load(f)
     except FileNotFoundError:
         print("Wallet file not found, will create new one")
+        
+        public, private = rsa.newkeys(2048)
+        publickey = str(public.exportKey('PEM'))
+        privatekey = str(private.exportKey('PEM'))
+
+        user_wallet = [privatekey, publickey, hashlib.sha256(publickey.encode()).hexdigest(), 0.0]
+
         with open("w.file", "w+") as f:
             f.write(json.dumps(user_wallet))
 
