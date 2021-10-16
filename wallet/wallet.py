@@ -16,7 +16,7 @@ def send(recipient, amount, private, publickey):
     s.connect((primary_remote_node, port))
 
     #user_wallet[2] is this wallets public address
-    signature = b64encode(rsa.sign(( user_wallet[2] + recipient + str(amount) ).encode(), private, "SHA-512")).decode()
+    signature = b64encode(rsa.sign(recipient.encode(), private, "SHA-512")).decode()
     transaction = json.dumps([user_wallet[2], recipient, amount, publickey, signature]).encode()
     
     s.send(transaction)

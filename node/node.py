@@ -29,7 +29,7 @@ def verify(message, signature, publickey):
 
 
 def add_pending_transaction(transaction):
-    if verify((transaction[0]+transaction[1]+transaction[2]), transaction[4], transaction[3]):
+    if verify(transaction[1], transaction[4], transaction[3]):
         pending_transactions.append(transaction)
     else:
         print("Tried to add transaction to pending transaction list, but signature was incorrect")
