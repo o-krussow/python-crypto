@@ -49,9 +49,10 @@ def commit_to_disk():
         f.write(json.dumps(blockchain))
 
 def transaction_recieved(transaction):
-    print(transaction)              #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
+    #TODO input validation stuff, the transmitted transaction format: sender,reciever,amount,signature
     try:
         parsed_transaction = json.loads(transaction)
+        print(parsed_transaction)
         add_pending_transaction(parsed_transaction)
     except json.decoder.JSONDecodeError as e:
         print("Transaction sent in a format json loader could not parse")
