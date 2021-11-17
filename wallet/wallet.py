@@ -16,9 +16,17 @@ def send(recipient, amount, private, publickey):
     s.connect((primary_remote_node, port))
 
     #user_wallet[2] is this wallets public address
-    signature = b64encode(rsa.sign(recipient.encode(), private, "SHA-512")).decode()
-    transaction = json.dumps([user_wallet[2], recipient, amount, publickey, signature]).encode()
+    #signature = b64encode(rsa.sign(recipient.encode(), private, "SHA-512")).decode()
+    #transaction = pickle.dumps([user_wallet[2], recipient, amount, publickey, signature]).encode()
     
+    transaction = [user_wallet[2], recipient, amount]
+    transaction_bytes = pickle.dumps(transaction)
+    transaction_signature = b64encode(rsa.sign(recipient.encode(), private, "SHA-512"))
+
+    transaction_wrapped = [transaction_bytes, transaction_signature]
+
+
+
     s.send(transaction)
     s.close()
 
@@ -41,7 +49,7 @@ def main():
         with open("w.file", "r") as f:
             user_wallet = json.load(f)
             private = RSA.importKey(user_wallet[0],passphrase=None)
-            publickey  = private.public_key().exportKey('PEM').decode()
+            public = private.public_key()
     except FileNotFoundError:
         print("Wallet file not found, will create new one")
         
@@ -49,7 +57,7 @@ def main():
         publickey = public.exportKey('PEM').decode()
         privatekey = private.exportKey('PEM').decode()
 
-        user_wallet = [privatekey, publickey, hashlib.sha256(publickey.encode()).hexdigest(), 0.0]
+        user_wallet = [private, publickey, hashlib.sha256(publickey.encode()).hexdigest(), 0.0]
 
         with open("w.file", "w+") as f:
             f.write(json.dumps(user_wallet))

@@ -8,6 +8,7 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 from base64 import b64encode, b64decode
 import rsa
+import pickle
 
 #each "block" = block number, nonce, data, prevhash, hash
 blockchain = [[0, 0, [], "0"*64, hashlib.sha256(("0" + "0" + "" + "0" * 64).encode("utf8")).hexdigest()]]
